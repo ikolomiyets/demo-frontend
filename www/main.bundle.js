@@ -71,14 +71,12 @@ var AppComponent = (function () {
     }
     AppComponent.prototype.ngOnInit = function () {
         this.state = this.store.select('app');
-        this.store.dispatch(new __WEBPACK_IMPORTED_MODULE_1__state_app_actions__["f" /* DoLoadPolicies */]({ first: 1, count: 10 }));
+        this.store.dispatch(new __WEBPACK_IMPORTED_MODULE_1__state_app_actions__["g" /* DoLoadPolicies */]({ first: 1, count: 10 }));
     };
     AppComponent.prototype.showInsured = function (content, policyNumber, insured) {
+        this.store.dispatch(new __WEBPACK_IMPORTED_MODULE_1__state_app_actions__["h" /* DoResetInsured */]());
         this.policyNumber = policyNumber;
-        for (var _i = 0, insured_1 = insured; _i < insured_1.length; _i++) {
-            var id = insured_1[_i];
-            this.store.dispatch(new __WEBPACK_IMPORTED_MODULE_1__state_app_actions__["g" /* DoRetrieveCustomer */](id));
-        }
+        this.store.dispatch(new __WEBPACK_IMPORTED_MODULE_1__state_app_actions__["f" /* DoInitCustomerRetrieval */](insured));
         this.modalService.open(content);
     };
     AppComponent = __decorate([
@@ -164,16 +162,16 @@ var AppModule = (function () {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "c", function() { return DO_LOAD_POLICIES; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "h", function() { return POLICIES_RECEIVED; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "i", function() { return POLICIES_RECEIVED; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return DO_INIT_CUSTOMER_RETRIEVAL; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "d", function() { return DO_RESET_INSURED; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "e", function() { return DO_RETRIEVE_CUSTOMER; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return CUSTOMER_RECEIVED; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "f", function() { return DoLoadPolicies; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "g", function() { return DoLoadPolicies; });
 /* unused harmony export PoliciesReceved */
-/* unused harmony export DoInitCustomerRetrieval */
-/* unused harmony export DoResetInsured */
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "g", function() { return DoRetrieveCustomer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "f", function() { return DoInitCustomerRetrieval; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "h", function() { return DoResetInsured; });
+/* unused harmony export DoRetrieveCustomer */
 /* unused harmony export CustomerReceived */
 var DO_LOAD_POLICIES = 'LOAD_POLICIES';
 var POLICIES_RECEIVED = 'POLICIES_RECEIVED';
@@ -206,8 +204,7 @@ var DoInitCustomerRetrieval = (function () {
 }());
 
 var DoResetInsured = (function () {
-    function DoResetInsured(payload) {
-        this.payload = payload;
+    function DoResetInsured() {
         this.type = DO_RESET_INSURED;
     }
     return DoResetInsured;
@@ -274,7 +271,7 @@ var AppEfects = (function () {
         })
             .map(function (policies) {
             return {
-                type: __WEBPACK_IMPORTED_MODULE_6__app_actions__["h" /* POLICIES_RECEIVED */],
+                type: __WEBPACK_IMPORTED_MODULE_6__app_actions__["i" /* POLICIES_RECEIVED */],
                 payload: policies
             };
         });
@@ -282,12 +279,7 @@ var AppEfects = (function () {
             .ofType(__WEBPACK_IMPORTED_MODULE_6__app_actions__["b" /* DO_INIT_CUSTOMER_RETRIEVAL */])
             .map(function (action) { return action.payload; })
             .flatMap(function (insured) {
-            var result = [
-                {
-                    type: __WEBPACK_IMPORTED_MODULE_6__app_actions__["d" /* DO_RESET_INSURED */],
-                    payload: null
-                }
-            ];
+            var result = [];
             for (var _i = 0, insured_1 = insured; _i < insured_1.length; _i++) {
                 var id = insured_1[_i];
                 result.push({ type: __WEBPACK_IMPORTED_MODULE_6__app_actions__["e" /* DO_RETRIEVE_CUSTOMER */], payload: id });
@@ -298,9 +290,11 @@ var AppEfects = (function () {
             .ofType(__WEBPACK_IMPORTED_MODULE_6__app_actions__["e" /* DO_RETRIEVE_CUSTOMER */])
             .map(function (action) { return action.payload; })
             .switchMap(function (payload) {
+            console.log('Retrieving ', payload);
             return _this.http.get('/customers/' + payload);
         })
             .map(function (insured) {
+            console.log('Retrieved', insured);
             return {
                 type: __WEBPACK_IMPORTED_MODULE_6__app_actions__["a" /* CUSTOMER_RECEIVED */],
                 payload: insured
@@ -354,7 +348,7 @@ var initialState = {
 function appReducer(state, action) {
     if (state === void 0) { state = initialState; }
     switch (action.type) {
-        case __WEBPACK_IMPORTED_MODULE_0__app_actions__["h" /* POLICIES_RECEIVED */]:
+        case __WEBPACK_IMPORTED_MODULE_0__app_actions__["i" /* POLICIES_RECEIVED */]:
             return __assign({}, state, { policies: action.payload.policies });
         case __WEBPACK_IMPORTED_MODULE_0__app_actions__["d" /* DO_RESET_INSURED */]:
             return __assign({}, state, { insured: [] });

@@ -1,20 +1,51 @@
 <!--The content below is only a placeholder and can be replaced.-->
-<div style="text-align:center">
-  <h1>
-    Welcome to {{title}}!
-  </h1>
-  <img width="300" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTAgMjUwIj4KICAgIDxwYXRoIGZpbGw9IiNERDAwMzEiIGQ9Ik0xMjUgMzBMMzEuOSA2My4ybDE0LjIgMTIzLjFMMTI1IDIzMGw3OC45LTQzLjcgMTQuMi0xMjMuMXoiIC8+CiAgICA8cGF0aCBmaWxsPSIjQzMwMDJGIiBkPSJNMTI1IDMwdjIyLjItLjFWMjMwbDc4LjktNDMuNyAxNC4yLTEyMy4xTDEyNSAzMHoiIC8+CiAgICA8cGF0aCAgZmlsbD0iI0ZGRkZGRiIgZD0iTTEyNSA1Mi4xTDY2LjggMTgyLjZoMjEuN2wxMS43LTI5LjJoNDkuNGwxMS43IDI5LjJIMTgzTDEyNSA1Mi4xem0xNyA4My4zaC0zNGwxNy00MC45IDE3IDQwLjl6IiAvPgogIDwvc3ZnPg==">
+<div class="container">
+  <div class="h1 my-4">Policies List</div>
+  <table class="table table-sm table-hover table-striped">
+    <thead>
+    <tr>
+      <th>#</th>
+      <th>Policy Number</th>
+      <th>Start Date</th>
+      <th>Insured</th>
+    </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let policy of (state | async).policies; let i = index">
+        <th scope="row">{{i + 1}}</th>
+        <td>{{policy.policyNumber}}</td>
+        <td>{{policy.startDate | date: 'dd/MM/yyyy' }}</td>
+        <td><a (click)="showInsured(customers, policy.policyNumber, policy.insured)" style="cursor: pointer;">View</a></td>
+      </tr>
+    </tbody>
+  </table>
+  <ng-template #customers let-c="close" let-d="dismiss">
+    <div class="modal-header">
+      <h5 class="modal-title">Insured for policy No. {{policyNumber}}</h5>
+      <button class="close" (click)="d()" style="cursor: pointer;">&times;</button>
+    </div>
+    <div class="modal-body">
+      <table class="table-sm table-hover table-striped">
+        <thead>
+        <tr>
+          <th>#</th>
+          <th>Last Name</th>
+          <th>First Name</th>
+          <th>Address</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let customer of (state | async).insured; let i = index">
+          <th scope="row">{{i + 1}}</th>
+          <td>{{customer.lastName}}</td>
+          <td>{{customer.firstName}}</td>
+          <td>{{customer.address}}</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="d()" style="cursor: pointer;">Dismiss</button>
+    </div>
+  </ng-template>
 </div>
-<h2>Here are some links to help you start: </h2>
-<ul>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://angular.io/tutorial">Tour of Heroes</a></h2>
-  </li>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://github.com/angular/angular-cli/wiki">CLI Documentation</a></h2>
-  </li>
-  <li>
-    <h2><a target="_blank" rel="noopener" href="https://blog.angular.io/">Angular blog</a></h2>
-  </li>
-</ul>
-
