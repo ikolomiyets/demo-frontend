@@ -1,27 +1,29 @@
-# DemoFrontend
+# Demo Frontend Project
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.5.0.
+Serves as the frontend to the demo application, hosting some static content,
+Angular 5 application and uses two backend micro-services at http://policies:8080 and
+http://customers:3000.
 
-## Development server
+## Building the image
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+In order to build the image run the following
 
-## Code scaffolding
+```docker build -t demo-frontend .```
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+## Starting the Demo Frontend container
 
-## Build
+You can start the Demo Frontend conainer using the following command:
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `-prod` flag for a production build.
+```docker run --name demo-frontend -d -p 80:80 --network sandbox demo-frontend```
 
-## Running unit tests
+The above command assumes that network sandbox exists in your docker environment.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+If not it could be created with the following command:
 
-## Running end-to-end tests
+```docker network create sandbox```
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+In order to use the docker image for development when the static content is automatically 
+becomes available to nginx server in container, start the container using the following command:
 
-## Further help
+```docker run --name demo-frontend -d -p 80:80 --network sandbox -v `pwd`/www:/usr/share/nginx/html demo-frontend```
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
