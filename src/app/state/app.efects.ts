@@ -43,7 +43,7 @@ export class AppEfects {
   doRetrieveCustomer = this.actions$
     .ofType(fromAppActions.DO_RETRIEVE_CUSTOMER)
     .map((action: fromAppActions.DoRetrieveCustomer) => action.payload)
-    .map((payload: number) => {
+    .concatMap((payload: number) => {
       console.log('Retrieving ', payload);
       return this.http.get<Insured>('/customers/' + payload);
     })
