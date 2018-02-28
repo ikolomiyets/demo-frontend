@@ -289,7 +289,7 @@ var AppEfects = (function () {
         this.doRetrieveCustomer = this.actions$
             .ofType(__WEBPACK_IMPORTED_MODULE_6__app_actions__["e" /* DO_RETRIEVE_CUSTOMER */])
             .map(function (action) { return action.payload; })
-            .switchMap(function (payload) {
+            .mergeMap(function (payload) {
             console.log('Retrieving ', payload);
             return _this.http.get('/customers/' + payload);
         })

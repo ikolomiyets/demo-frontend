@@ -24,10 +24,7 @@ export class AppComponent implements OnInit {
   showInsured(content, policyNumber, insured: number[]) {
     this.store.dispatch(new fromAppAction.DoResetInsured());
     this.policyNumber = policyNumber;
-    for (let i = 0; i < insured.length; i++) {
-      const insuredPerson = insured[i];
-      this.store.dispatch(new fromAppAction.DoRetrieveCustomer(insuredPerson));
-    }
+    this.store.dispatch(new fromAppAction.DoInitCustomerRetrieval(insured));
 
     this.modalService.open(content);
   }
