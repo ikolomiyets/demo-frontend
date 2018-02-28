@@ -5,7 +5,6 @@ import { HttpClient } from '@angular/common/http';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/mergeMap';
-import 'rxjs/add/operator/concatMap';
 
 import * as fromAppActions from './app.actions';
 import { Insured, Policies } from '../model/policy.model';
@@ -43,7 +42,7 @@ export class AppEfects {
   doRetrieveCustomer = this.actions$
     .ofType(fromAppActions.DO_RETRIEVE_CUSTOMER)
     .map((action: fromAppActions.DoRetrieveCustomer) => action.payload)
-    .concatMap((payload: number) => {
+    .mergeMap((payload: number) => {
       console.log('Retrieving ', payload);
       return this.http.get<Insured>('/customers/' + payload);
     })
