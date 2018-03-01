@@ -1,5 +1,8 @@
 version="1.0.0"
-image="ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}"
+repository="ikolomiyets/demo-frontend"
+tag="latest"
+image="${repository}:${version}.${env.BUILD_NUMBER}"
+namespace="kube-demo"
 
 podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'jenkins',
   containers: [
@@ -63,11 +66,11 @@ podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'je
 
         stage('Build Docker Image') {
             container('docker') {
-                sh "docker build -t ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER} ."
+                sh "docker build -t ${image} ."
                 sh 'cat /etc/.secret/password | docker login --password-stdin --username $DOCKER_USERNAME'
-                sh "docker push ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}"
-                sh "docker tag ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER} ikolomiyets/demo-frontend:latest"
-                sh "docker push ikolomiyets/demo-frontend:latest"
+                sh "docker push ${image}"
+                sh "docker tag ${image} ${repository}:${tag}"
+                sh "docker push ${repository}:${tag}"
                 milestone(4)
             }
         }
@@ -102,7 +105,7 @@ podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'je
 
         stage('Deploy Latest') {
             container('kubectl') {
-                sh "kubectl patch -n kube-demo deployment demo-frontend -p '{\"spec\": { \"template\" : {\"spec\" : {\"containers\" : [{ \"name\" : \"demo-frontend\", \"image\" : \"ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}\"}]}}}}'"
+                sh "kubectl patch -n ${namespace} deployment demo-frontend -p '{\"spec\": { \"template\" : {\"spec\" : {\"containers\" : [{ \"name\" : \"demo-frontend\", \"image\" : \"${image}\"}]}}}}'"
                 milestone(6)
             }
         }
