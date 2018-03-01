@@ -1,5 +1,5 @@
 version="1.0.0"
-image="ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}""
+image="ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}"
 
 podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'jenkins',
   containers: [
