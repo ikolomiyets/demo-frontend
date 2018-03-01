@@ -1,4 +1,5 @@
 version="1.0.0"
+image="ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}""
 
 podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'jenkins',
   containers: [
@@ -101,35 +102,7 @@ podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'je
 
         stage('Deploy Latest') {
             container('kubectl') {
-                sh '''
-                    #!/bin/sh
-
-                    echo 'Saving the pod name'
-                    pod=`kubectl get pods -n kube-demo | grep demo-frontend | awk '{print $1;}'`
-
-                    echo 'Scaling deployment'
-                    kubectl -n kube-demo scale deployment demo-frontend --replicas=2
-
-                    echo 'Waiting for the new pod to come up'
-                    status=`kubectl get pods -n kube-demo | grep demo-frontend | grep -v Running | awk {'print $3'}`
-
-                    echo $status
-
-                    while [ ! -z "$status" ] && [ "$status" = "ContainerCreating" ];
-                    do
-                        sleep 10
-                        status=`kubectl get pods -n kube-demo | grep demo-frontend | grep -v Running | awk {'print $3'}`
-                        echo $status
-                    done
-
-                    echo 'Delete original pod'
-                    kubectl delete pods -n kube-demo $pod
-
-                    sleep 15
-
-                    echo 'Scaling back deployment'
-                    kubectl -n kube-demo scale deployment demo-frontend --replicas=1
-                '''
+                sh "kubectl patch -n kube-demo deployment demo-frontend -p '{\\"spec\\": { \\"template\\" : {\\"spec\\" : {\\"containers\\" : [{ \\"name\\" : \\"demo-frontend\\", \\"image\\" : \\"ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}\\"}]}}}}'"
                 milestone(5)
             }
         }
