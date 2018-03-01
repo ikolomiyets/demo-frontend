@@ -2,20 +2,20 @@ version="1.0.0"
 repository="ikolomiyets/demo-frontend"
 tag="latest"
 image="${repository}:${version}.${env.BUILD_NUMBER}"
-namespace="kube-demo"
+namespace="demo"
 
-podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'jenkins',
+podTemplate(label: 'demo-customer-pod', cloud: 'OpenShift', serviceAccount: 'jenkins-sa',
   containers: [
     containerTemplate(name: 'ng', image: 'iktech/angular-client-slave', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'docker', image: 'docker:dind', ttyEnabled: true, command: 'cat', privileged: true,
-        envVars: [secretEnvVar(key: 'DOCKER_USERNAME', secretName: 'docker-hub-credentials', secretKey: 'username'),
+        envVars: [secretEnvVar(key: 'DOCKER_USERNAME', secretName: 'ikolomiyets-docker-hub-credentials', secretKey: 'username'),
     ]),
     containerTemplate(name: 'sonarqube', image: 'iktech/sonarqube-scanner', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'kubectl', image: 'roffe/kubectl', ttyEnabled: true, command: 'cat'),
   ],
   volumes: [
     secretVolume(secretName: 'sonar-scanner.properties', mountPath: '/opt/sonar-scanner/conf'),
-    secretVolume(secretName: 'docker-hub-credentials', mountPath: '/etc/.secret'),
+    secretVolume(secretName: 'ikolomiyets-docker-hub-credentials', mountPath: '/etc/.secret'),
     hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock')
   ]) {
     node('demo-customer-pod') {
