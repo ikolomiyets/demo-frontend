@@ -3,12 +3,14 @@ version="1.0.0"
 podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'jenkins',
   containers: [
     containerTemplate(name: 'ng', image: 'iktech/angular-client-slave', ttyEnabled: true, command: 'cat'),
-    containerTemplate(name: 'docker', image: 'docker:dind', ttyEnabled: true, command: 'cat', privileged: true),
+    containerTemplate(name: 'docker', image: 'docker:dind', ttyEnabled: true, command: 'cat', privileged: true,
+        envVars: [secretEnvVar(key: 'DOCKER_USERNAME', secretName: 'docker-hub-credentials', secretKey: 'username'),
+    ]),
     containerTemplate(name: 'sonarqube', image: 'iktech/sonarqube-scanner', ttyEnabled: true, command: 'cat')
   ],
   volumes: [
     secretVolume(secretName: 'sonar-scanner.properties', mountPath: '/opt/sonar-scanner/conf'),
-    secretVolume(secretName: 'docker-hub-password', mountPath: '/etc/.secret'),
+    secretVolume(secretName: 'docker-hub-credentials', mountPath: '/etc/.secret'),
     hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock')
   ]) {
     node('demo-customer-pod') {
@@ -60,7 +62,7 @@ podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'je
         stage('Build Docker Image') {
             container('docker') {
                 sh "docker build -t ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER} ."
-                sh 'cat /etc/.secret | docker login --password-stdin --username ikolomiyets'
+                sh "cat /etc/.secret/password | docker login --password-stdin --username ${DOCKER_USERNAME}"
                 sh "docker push ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}"
                 sh "docker tag ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER} ikolomiyets/demo-frontend:latest"
                 sh "docker push ikolomiyets/demo-frontend:latest"
