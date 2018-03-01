@@ -99,3 +99,11 @@ podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'je
         }
     }
 }
+
+properties([[
+    $class: 'BuildDiscarderProperty',
+    strategy: [
+        $class: 'LogRotator',
+        artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '', numToKeepStr: '10']
+    ]
+]);
