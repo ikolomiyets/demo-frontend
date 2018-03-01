@@ -6,7 +6,8 @@ podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'je
     containerTemplate(name: 'docker', image: 'docker:dind', ttyEnabled: true, command: 'cat', privileged: true,
         envVars: [secretEnvVar(key: 'DOCKER_USERNAME', secretName: 'docker-hub-credentials', secretKey: 'username'),
     ]),
-    containerTemplate(name: 'sonarqube', image: 'iktech/sonarqube-scanner', ttyEnabled: true, command: 'cat')
+    containerTemplate(name: 'sonarqube', image: 'iktech/sonarqube-scanner', ttyEnabled: true, command: 'cat'),
+    containerTemplate(name: 'kubectl', image: 'roffe/kubectl', ttyEnabled: true, command: 'cat'),
   ],
   volumes: [
     secretVolume(secretName: 'sonar-scanner.properties', mountPath: '/opt/sonar-scanner/conf'),
@@ -62,7 +63,6 @@ podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'je
         stage('Build Docker Image') {
             container('docker') {
                 sh "docker build -t ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER} ."
-                sh 'echo $DOCKER_USERNAME'
                 sh 'cat /etc/.secret/password | docker login --password-stdin --username $DOCKER_USERNAME'
                 sh "docker push ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}"
                 sh "docker tag ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER} ikolomiyets/demo-frontend:latest"
@@ -70,32 +70,68 @@ podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'je
                 milestone(4)
             }
         }
-    }
 
-    node('master') {
-        stage('Tag Source Code') {
-            checkout scm
 
-            def repositoryCommitterEmail = "jenkins@iktech.io"
-            def repositoryCommitterUsername = "jenkinsCI"
-            values = version.tokenize(".")
+        node('master') {
+            stage('Tag Source Code') {
+                checkout scm
 
-            sh "git config user.email ${repositoryCommitterEmail}"
-            sh "git config user.name '${repositoryCommitterUsername}'"
-            sh "git tag -d v${values[0]} || true"
-            sh "git push origin :refs/tags/v${values[0]}"
-            sh "git tag -d v${values[0]}.${values[1]} || true"
-            sh "git push origin :refs/tags/v${values[0]}.${values[1]}"
-            sh "git tag -d v${version} || true"
-            sh "git push origin :refs/tags/v${version}"
+                def repositoryCommitterEmail = "jenkins@iktech.io"
+                def repositoryCommitterUsername = "jenkinsCI"
+                values = version.tokenize(".")
 
-            sh "git tag -fa v${values[0]} -m \"passed CI\""
-            sh "git tag -fa v${values[0]}.${values[1]} -m \"passed CI\""
-            sh "git tag -fa v${version} -m \"passed CI\""
-            sh "git tag -a v${version}.${env.BUILD_NUMBER} -m \"passed CI\""
-            sh "git push -f --tags"
+                sh "git config user.email ${repositoryCommitterEmail}"
+                sh "git config user.name '${repositoryCommitterUsername}'"
+                sh "git tag -d v${values[0]} || true"
+                sh "git push origin :refs/tags/v${values[0]}"
+                sh "git tag -d v${values[0]}.${values[1]} || true"
+                sh "git push origin :refs/tags/v${values[0]}.${values[1]}"
+                sh "git tag -d v${version} || true"
+                sh "git push origin :refs/tags/v${version}"
 
-            milestone(5)
+                sh "git tag -fa v${values[0]} -m \"passed CI\""
+                sh "git tag -fa v${values[0]}.${values[1]} -m \"passed CI\""
+                sh "git tag -fa v${version} -m \"passed CI\""
+                sh "git tag -a v${version}.${env.BUILD_NUMBER} -m \"passed CI\""
+                sh "git push -f --tags"
+
+                milestone(6)
+            }
+        }
+
+        stage('Deploy Latest') {
+            container('kubectl') {
+                sh '''
+                    #!/bin/sh
+
+                    echo 'Saving the pod name'
+                    pod=`kubectl get pods -n kube-demo | grep demo-frontend | awk '{print $1;}'`
+
+                    echo 'Scaling deployment'
+                    kubectl -n kube-demo scale deployment demo-frontend --replicas=2
+
+                    echo 'Waiting for the new pod to come up'
+                    status=`kubectl get pods -n kube-demo | grep demo-frontend | grep -v Running | awk {'print $3'}`
+
+                    echo $status
+
+                    while [ ! -z "$status" ] && [ "$status" = "ContainerCreating" ];
+                    do
+                        sleep 10
+                        status=`kubectl get pods -n kube-demo | grep demo-frontend | grep -v Running | awk {'print $3'}`
+                        echo $status
+                    done
+
+                    echo 'Delete original pod'
+                    kubectl delete pods -n kube-demo $pod
+
+                    sleep 15
+
+                    echo 'Scaling back deployment'
+                    kubectl -n kube-demo scale deployment demo-frontend --replicas=1
+                '''
+                milestone(5)
+            }
         }
     }
 }
