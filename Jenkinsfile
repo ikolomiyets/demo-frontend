@@ -96,14 +96,14 @@ podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'je
                 sh "git tag -a v${version}.${env.BUILD_NUMBER} -m \"passed CI\""
                 sh "git push -f --tags"
 
-                milestone(6)
+                milestone(5)
             }
         }
 
         stage('Deploy Latest') {
             container('kubectl') {
                 sh "kubectl patch -n kube-demo deployment demo-frontend -p '{\"spec\": { \"template\" : {\"spec\" : {\"containers\" : [{ \"name\" : \"demo-frontend\", \"image\" : \"ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}\"}]}}}}'"
-                milestone(5)
+                milestone(6)
             }
         }
     }
