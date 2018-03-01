@@ -1,12 +1,14 @@
 version="1.0.0"
 
-podTemplate(label: 'demo-customer-pod', cloud: 'OpenShift', serviceAccount: 'jenkins-sa',
+podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'jenkins',
   containers: [
+    containerTemplate(name: 'ng', image: 'iktech/angular-client-slave', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'docker', image: 'docker:dind', ttyEnabled: true, command: 'cat', privileged: true),
     containerTemplate(name: 'sonarqube', image: 'iktech/sonarqube-scanner', ttyEnabled: true, command: 'cat')
   ],
   volumes: [
     secretVolume(secretName: 'sonar-scanner.properties', mountPath: '/opt/sonar-scanner/conf'),
+    secretVolume(secretName: 'docker-hub-password', mountPath: '/etc/.secret'),
     hostPathVolume(hostPath: '/var/run/docker.sock', mountPath: '/var/run/docker.sock')
   ]) {
     node('demo-customer-pod') {
@@ -15,6 +17,7 @@ podTemplate(label: 'demo-customer-pod', cloud: 'OpenShift', serviceAccount: 'jen
 
             stage('SonarQube Analysis') {
                 container('sonarqube') {
+                  lock(resource: 'demo-frontend') {
                     try {
                         def scannerHome = tool 'sonarqube-scanner';
                         withSonarQubeEnv('Sonarqube') {
@@ -24,30 +27,44 @@ podTemplate(label: 'demo-customer-pod', cloud: 'OpenShift', serviceAccount: 'jen
                         slackSend color: "danger", message: "Build Failure - ${env.JOB_NAME} build number ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)"
                         throw error
                     }
+                  }
                 }
             }
-
         }
 
         stage("Quality Gate") {
+          milestone(1)
+          lock(resource: 'demo-frontend') {
                 timeout(time: 1, unit: 'HOURS') { // Just in case something goes wrong, pipeline will be killed after a timeout
                 def qg = waitForQualityGate() // Reuse taskId previously collected by withSonarQubeEnv
                 if (qg.status != 'OK') {
                     slackSend color: "danger", message: "Build Failure Quality gate failure ${qg.status} - ${env.JOB_NAME}:${env.BUILD_NUMBER}"
                     error "Pipeline aborted due to quality gate failure: ${qg.status}"
                 } else {
-                    milestone()
+                    milestone(2)
                 }
+            }
+          }
+        }
+
+        stage('Build Angular Code') {
+            container('ng') {
+                dir ('src') {
+                    sh 'npm install'
+                    sh 'ng build --output-path ../www --env prod --prod --aot --delete-output-path true'
+                }
+                milestone(3)
             }
         }
 
         stage('Build Docker Image') {
             container('docker') {
-                sh "docker build -t docker-registry.default.svc:5000/demo/demo-customer:${version}.${env.BUILD_NUMBER} ."
-                sh 'cat /var/run/secrets/kubernetes.io/serviceaccount/token | docker login --password-stdin --username jenkins-sa docker-registry.default.svc:5000'
-                sh "docker push docker-registry.default.svc:5000/demo/demo-customer:${version}.${env.BUILD_NUMBER}"
-                sh "docker push docker-registry.default.svc:5000/demo/demo-customer:latest"
-                milestone()
+                sh "docker build -t ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER} ."
+                sh 'cat /etc/.secret | docker login --password-stdin --username ikolomiyets
+                sh "docker push ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}"
+                sh "docker tag ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER} ikolomiyets/demo-frontend:latest"
+                sh "docker push ikolomiyets/demo-frontend:latest"
+                milestone(4)
             }
         }
     }
@@ -75,7 +92,7 @@ podTemplate(label: 'demo-customer-pod', cloud: 'OpenShift', serviceAccount: 'jen
             sh "git tag -a v${version}.${env.BUILD_NUMBER} -m \"passed CI\""
             sh "git push -f --tags"
 
-            milestone()
+            milestone(5)
         }
     }
 }
