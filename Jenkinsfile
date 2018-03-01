@@ -102,7 +102,7 @@ podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'je
 
         stage('Deploy Latest') {
             container('kubectl') {
-                sh "kubectl patch -n kube-demo deployment demo-frontend -p '{"spec": { "template" : {\\"spec\\" : {\\"containers\\" : [{ \\"name\\" : \\"demo-frontend\\", \\"image\\" : \\"ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}\\"}]}}}}'"
+                sh "kubectl patch -n kube-demo deployment demo-frontend -p '{"spec": { "template" : {"spec" : {"containers" : [{ "name" : "demo-frontend", "image" : "ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}"}]}}}}'"
                 milestone(5)
             }
         }
