@@ -60,7 +60,7 @@ podTemplate(label: 'demo-customer-pod', cloud: 'kubernetes', serviceAccount: 'je
         stage('Build Docker Image') {
             container('docker') {
                 sh "docker build -t ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER} ."
-                sh 'cat /etc/.secret | docker login --password-stdin --username ikolomiyets
+                sh 'cat /etc/.secret | docker login --password-stdin --username ikolomiyets'
                 sh "docker push ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER}"
                 sh "docker tag ikolomiyets/demo-frontend:${version}.${env.BUILD_NUMBER} ikolomiyets/demo-frontend:latest"
                 sh "docker push ikolomiyets/demo-frontend:latest"
