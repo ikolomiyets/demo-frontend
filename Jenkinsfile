@@ -4,7 +4,7 @@ tag="latest"
 image="${repository}:${version}.${env.BUILD_NUMBER}"
 namespace="demo"
 
-podTemplate(label: 'demo-customer-pod', cloud: 'OpenShift', serviceAccount: 'jenkins-sa',
+podTemplate(label: 'demo-customer-pod', cloud: 'OpenShift', serviceAccount: 'jenkins',
   containers: [
     containerTemplate(name: 'ng', image: 'iktech/angular-client-slave', ttyEnabled: true, command: 'cat'),
     containerTemplate(name: 'docker', image: 'docker:dind', ttyEnabled: true, command: 'cat', privileged: true,
