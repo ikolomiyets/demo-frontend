@@ -16,7 +16,7 @@ export class AppEfects {
     .ofType(fromAppActions.DO_LOAD_POLICIES)
     .map((action: fromAppActions.DoLoadPolicies) => action.payload)
     .switchMap((payload: {first: number, count: number}) => {
-      return this.http.get<Policies>('/policies');
+      return this.http.get<Policies>('/policies/');
     })
     .map((policies) => {
       return {
