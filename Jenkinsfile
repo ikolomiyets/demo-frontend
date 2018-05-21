@@ -79,34 +79,28 @@ podTemplate(label: 'demo-customer-pod', cloud: 'OpenShift', serviceAccount: 'jen
             }
         }
 
+        stage('Tag Source Code') {
+            def repositoryCommitterEmail = "jenkins@iktech.io"
+            def repositoryCommitterUsername = "jenkinsCI"
+            values = version.tokenize(".")
 
-        node('master') {
-            stage('Tag Source Code') {
-                checkout scm
+            sh "git config user.email ${repositoryCommitterEmail}"
+            sh "git config user.name '${repositoryCommitterUsername}'"
+            sh "git tag -d v${values[0]} || true"
+            sh "git push origin :refs/tags/v${values[0]}"
+            sh "git tag -d v${values[0]}.${values[1]} || true"
+            sh "git push origin :refs/tags/v${values[0]}.${values[1]}"
+            sh "git tag -d v${version} || true"
+            sh "git push origin :refs/tags/v${version}"
 
-                def repositoryCommitterEmail = "jenkins@iktech.io"
-                def repositoryCommitterUsername = "jenkinsCI"
-                values = version.tokenize(".")
+            sh "git tag -fa v${values[0]} -m \"passed CI\""
+            sh "git tag -fa v${values[0]}.${values[1]} -m \"passed CI\""
+            sh "git tag -fa v${version} -m \"passed CI\""
+            sh "git tag -a v${version}.${env.BUILD_NUMBER} -m \"passed CI\""
+            sh "git push -f --tags"
 
-                sh "git config user.email ${repositoryCommitterEmail}"
-                sh "git config user.name '${repositoryCommitterUsername}'"
-                sh "git tag -d v${values[0]} || true"
-                sh "git push origin :refs/tags/v${values[0]}"
-                sh "git tag -d v${values[0]}.${values[1]} || true"
-                sh "git push origin :refs/tags/v${values[0]}.${values[1]}"
-                sh "git tag -d v${version} || true"
-                sh "git push origin :refs/tags/v${version}"
-
-                sh "git tag -fa v${values[0]} -m \"passed CI\""
-                sh "git tag -fa v${values[0]}.${values[1]} -m \"passed CI\""
-                sh "git tag -fa v${version} -m \"passed CI\""
-                sh "git tag -a v${version}.${env.BUILD_NUMBER} -m \"passed CI\""
-                sh "git push -f --tags"
-
-                milestone(5)
-            }
+            milestone(5)
         }
-
         stage('Deploy Latest') {
             container('kubectl') {
                 sh "kubectl patch -n ${namespace} deployment demo-frontend -p '{\"spec\": { \"template\" : {\"spec\" : {\"containers\" : [{ \"name\" : \"demo-frontend\", \"image\" : \"${image}\"}]}}}}'"
