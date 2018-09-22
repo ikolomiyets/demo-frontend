@@ -16,7 +16,7 @@ export class AppEfects {
     .ofType(fromAppActions.DO_LOAD_POLICIES)
     .map((action: fromAppActions.DoLoadPolicies) => action.payload)
     .switchMap((payload: {first: number, count: number}) => {
-      return this.http.get<Policies>('http://demo-policy.demo.svc:8080/policies');
+      return this.http.get<Policies>('http://demo-policy-demo.openshift.iktech.io/policies');
     })
     .map((policies) => {
       return {
@@ -44,7 +44,7 @@ export class AppEfects {
     .map((action: fromAppActions.DoRetrieveCustomer) => action.payload)
     .mergeMap((payload: number) => {
       console.log('Retrieving ', payload);
-      return this.http.get<Insured>('http://demo-customer.demo.svc:3000/' + payload);
+      return this.http.get<Insured>('http://demo-customer-demo.openshift.iktech.io/customers/' + payload);
     })
     .map((insured) => {
       console.log('Retrieved', insured);
