@@ -62,7 +62,7 @@ podTemplate(label: 'demo-customer-pod', cloud: 'OpenShift', serviceAccount: 'jen
             container('ng') {
                 dir ('src') {
                     sh 'npm install'
-                    sh 'ng build --output-path ../www --env prod --prod --aot --delete-output-path true'
+                    sh 'ng build --output-path ../www'
                 }
                 milestone(3)
             }
