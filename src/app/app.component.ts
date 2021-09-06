@@ -4,6 +4,7 @@ import * as fromApp from './state/app.reducers';
 import * as fromAppAction from './state/app.actions';
 import { Store } from '@ngrx/store';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +12,7 @@ import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  state: Store<fromApp.AppState>;
+  state: Observable<fromApp.AppState>;
   insured: number[];
   policyNumber: string;
 

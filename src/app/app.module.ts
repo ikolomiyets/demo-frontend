@@ -1,10 +1,8 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
-
 import { AppComponent } from './app.component';
 import { HttpClientModule } from '@angular/common/http';
-import { AngularFontAwesomeModule } from 'angular-font-awesome';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { StoreModule } from '@ngrx/store';
 import { appReducer } from './state/app.reducers';
@@ -21,8 +19,8 @@ import { environment } from '../environments/environment';
   imports: [
     BrowserModule,
     HttpClientModule,
-    AngularFontAwesomeModule,
-    NgbModule.forRoot(),
+    FontAwesomeModule,
+    NgbModule,
     StoreModule.forRoot({app: appReducer}),
     EffectsModule.forRoot([AppEfects]),
     !environment.production ? StoreDevtoolsModule.instrument() : []
