@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 
 import * as fromApp from './state/app.reducers';
 import * as fromAppAction from './state/app.actions';
-import { Store } from '@ngrx/store';
+import { select, Store } from '@ngrx/store';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { Observable } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -13,19 +14,21 @@ import { Observable } from 'rxjs';
 })
 export class AppComponent implements OnInit {
   state: Observable<fromApp.AppState>;
+  customersBaseUrl: string;
   insured: number[];
   policyNumber: string;
 
   constructor(private store: Store<{app: fromApp.AppState}>, private modalService: NgbModal) {}
   ngOnInit(): void {
     this.state = this.store.select('app');
-    this.store.dispatch(new fromAppAction.DoLoadPolicies({first: 1, count: 10}));
+    this.store.dispatch(new fromAppAction.DoInitAction());
   }
 
-  showInsured(content, policyNumber, insured: number[]) {
+  async showInsured(content, policyNumber, insured: number[]) {
     this.store.dispatch(new fromAppAction.DoResetInsured());
     this.policyNumber = policyNumber;
-    this.store.dispatch(new fromAppAction.DoInitCustomerRetrieval(insured));
+    this.store.dispatch(new fromAppAction.DoInitCustomerRetrieval({baseUrl: await this.state.pipe(select(state => state.config.DEMO_FRONTEND_CUSTOMERS_URL), take(1)).toPromise()
+      , ids: insured}));
 
     this.modalService.open(content);
   }

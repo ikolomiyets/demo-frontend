@@ -4,11 +4,13 @@ import { Insured, Policy } from '../model/policy.model';
 export interface AppState {
   policies: Policy[];
   insured: Insured[];
+  config: any;
 }
 
 export const initialState: AppState = {
   policies: [],
-  insured: []
+  insured: [],
+  config: null,
 };
 
 export function appReducer(state = initialState, action: fromAppActions.AppActions) {
@@ -27,6 +29,11 @@ export function appReducer(state = initialState, action: fromAppActions.AppActio
       return {
         ...state,
         insured: [...state.insured, action.payload]
+      };
+    case fromAppActions.STORE_CONFIG:
+      return {
+        ...state,
+        config: action.payload.config,
       };
     default:
       return state;
