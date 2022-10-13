@@ -1,4 +1,4 @@
-FROM node:16.8.0-alpine3.14 as build
+FROM node:16.14.2-alpine3.15 as build
 
 RUN mkdir /app \
  && npm install -g @angular/cli@12.2.4
@@ -15,7 +15,10 @@ RUN npm install \
  && ng build --output-path www --configuration=production --prod --aot \
  && chmod 755 /http-server-entrypoint
 
-FROM nginx:1.21.1-alpine
+FROM nginx:1.21.6-alpine
+
+RUN apk update \
+    && apk upgrade \
 
 COPY www/* /usr/share/nginx/html/
 COPY conf/default.conf /etc/nginx/conf.d/
