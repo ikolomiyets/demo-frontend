@@ -45,3 +45,5 @@ Thumbs.db
 www
 .scannerwork
 .idea
+secret*.yaml
+config.json
