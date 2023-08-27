@@ -11,16 +11,16 @@ ADD src /app/src/
 ADD e2e /app/e2e/
 ADD *.js *.json /app/
 
-RUN npm install \
- && ng build --output-path www --configuration=production --prod --aot \
- && chmod 755 /http-server-entrypoint
+RUN npm install
+RUN ng build --output-path www --configuration=production --prod --aot \
+RUN chmod 755 /http-server-entrypoint
 
 FROM nginx:1.21.6-alpine
 
 RUN apk update \
-    && apk upgrade \
+    && apk upgrade
 
-COPY www/* /usr/share/nginx/html/
+COPY --from=build /app/www/* /usr/share/nginx/html/
 COPY conf/default.conf /etc/nginx/conf.d/
 
 RUN chgrp -R 0 /var/cache \
