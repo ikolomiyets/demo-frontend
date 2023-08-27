@@ -19,7 +19,7 @@
       </tr>
     </tbody>
   </table>
-  <ng-template #customers let-c="close" let-d="dismiss">
+  <ng-template #customers let-c="close" let-d="dismiss" let-modal>
     <div class="modal-header">
       <h5 class="modal-title">Insured for policy No. {{policyNumber}}</h5>
       <button class="close" (click)="d()" style="cursor: pointer;">&times;</button>
