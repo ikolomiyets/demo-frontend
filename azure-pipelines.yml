@@ -50,8 +50,8 @@ stages:
         name: 'demo-frontend'
         type: 'DockerImage'
         version: $(Build.BuildNumber)
-    - task: PublishBuildArtifacts@1
+    - task: push-artifact@1
       inputs:
-        PathtoPublish: 'deployment/swarm'
-        ArtifactName: 'swarm'
-        publishLocation: 'Container'
+        apiToken: $(artifactz.apiToken)
+        stage: 'Integration Test'
+        name: 'demo-frontend'
